@@ -1,0 +1,26 @@
+# Java
+backend/target/
+*.class
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Modelos e dados
+ml-worker/models/*.pt
+ml-worker/models/*.pth
+ml-worker/models/*.onnx
+!ml-worker/models/.gitkeep
+dataset/data/
+Base_unica/
+
+# IDE / sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Ambiente
+.env

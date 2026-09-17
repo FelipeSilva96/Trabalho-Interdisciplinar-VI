@@ -1,0 +1,11 @@
+**/.git
+**/.idea
+**/.vscode
+**/__pycache__
+**/.venv
+backend/target
+ml-worker/models/*.pt
+ml-worker/models/*.pth
+ml-worker/models/*.onnx
+dataset/data
+Base_unica
