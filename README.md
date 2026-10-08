@@ -8,7 +8,7 @@
 
 Projeto desenvolvido para o **Trabalho Interdisciplinar VI do curso de Ciência da Computação da PUC Minas**.
 
-A ideia do trabalho é classificar imagens de resíduos sólidos e, ao mesmo tempo, estudar como o mesmo processamento se comporta em execuções sequenciais, paralelas e distribuídas.
+O conceito do trabalho é classificar imagens de resíduos sólidos e, ao mesmo tempo, estudar como o mesmo processamento se comporta em execuções sequenciais, paralelas e distribuídas.
 
 ## O que queremos investigar
 
