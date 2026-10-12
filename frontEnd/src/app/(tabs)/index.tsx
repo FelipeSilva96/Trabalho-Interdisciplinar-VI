@@ -2,10 +2,7 @@ import { Text, View, StyleSheet } from "react-native";
 import ImageViewer from "../../../components/ImageViewer";
 import Button from "../../../components/Button";
 import * as ImagePicker from "expo-image-picker"
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import ExpoImage from "expo-image/build/ExpoImage";
-import { navigate } from "expo-router/build/global-state/router";
 
 
  
@@ -26,17 +23,17 @@ export default function Index() {
 
     /*Se o resultado nao for cancelado entao atribui se a imagem a variavel selectedUri */
     if (!result.canceled){
-      /*console.log(result);*/
+      console.log(result);
       const selectedUri = result.assets[0].uri;
-      console.log("URI SELECIONADA => " + selectedUri)
       const encodedUri = encodeURIComponent(selectedUri)
-      console.log("URI CODIFICADA => " + encodedUri)
-      
+      const imageType = result.assets[0].mimeType;
+      console.log(imageType);
+
 
       /*Envia a URI da imagem para outra pagina para ser mostrada ao usuario e o leva ate la*/ 
       router.navigate({
         pathname:"/separateScreens/imagemSelecionada",
-        params: {imageUri:encodedUri}
+        params: {imageUri:encodedUri, imageType:imageType}
       })
     }
 
@@ -73,7 +70,7 @@ export default function Index() {
     });
 
     if (!result.canceled){
-
+      console.log(result);
       const imageTaken = result.assets[0].uri;
       const encodedUri = encodeURIComponent(imageTaken);
 
