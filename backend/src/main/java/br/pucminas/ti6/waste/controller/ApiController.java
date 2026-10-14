@@ -85,7 +85,7 @@ public class ApiController {
     public ClassificationResponse classify(
             @RequestPart("files") List<MultipartFile> files,
             @RequestParam(defaultValue = "distributed") String strategy,
-            @RequestParam(defaultValue = "rest") String protocol
+            @RequestParam(defaultValue = "grpc") String protocol
     ) {
         if (files.isEmpty()) {
             throw new IllegalArgumentException("Envie pelo menos uma imagem");
