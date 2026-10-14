@@ -63,8 +63,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True)
     parser.add_argument("--epochs", type=int, default=10)
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--output", default="models/waste_mobilenet.pt")
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--output", default="models/waste_efficientnet_v2_s.pt")
     parser.add_argument("--no-pretrained", action="store_true")
     args = parser.parse_args()
 
