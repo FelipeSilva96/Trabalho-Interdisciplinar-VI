@@ -363,3 +363,4 @@ O script:
 ## Referências Científicas
 
 As referências bibliográficas do trabalho estão reunidas em [`docs/references.md`](docs/references.md).
+
