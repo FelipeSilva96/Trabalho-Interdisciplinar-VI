@@ -30,7 +30,8 @@ public class WorkerGrpcClient {
         WasteInferenceServiceGrpc.WasteInferenceServiceBlockingStub stub =
                 WasteInferenceServiceGrpc.newBlockingStub(channel)
                         .withMaxInboundMessageSize(MAX_MESSAGE_SIZE)
-                        .withMaxOutboundMessageSize(MAX_MESSAGE_SIZE);
+                        .withMaxOutboundMessageSize(MAX_MESSAGE_SIZE)
+                        .withDeadlineAfter(120, TimeUnit.SECONDS);
 
         BatchInferenceRequest.Builder requestBuilder = BatchInferenceRequest.newBuilder();
 
