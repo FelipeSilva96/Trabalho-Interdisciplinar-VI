@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import waste_inference_pb2 as waste__inference__pb2
+from . import waste_inference_pb2 as waste__inference__pb2
 
 GRPC_GENERATED_VERSION = '1.84.0'
 GRPC_VERSION = grpc.__version__
