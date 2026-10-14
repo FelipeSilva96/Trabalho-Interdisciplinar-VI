@@ -19,7 +19,7 @@ services:
     environment:
       WORKER_ID: worker-1
       GRPC_PORT: 50051
-      MODEL_PATH: /app/models/waste_mobilenet.pt
+      MODEL_PATH: /app/models/waste_efficientnet_v2_s.pt
     volumes:
       - ./ml-worker/models:/app/models:ro
     ports:
@@ -37,7 +37,7 @@ services:
     environment:
       WORKER_ID: worker-2
       GRPC_PORT: 50051
-      MODEL_PATH: /app/models/waste_mobilenet.pt
+      MODEL_PATH: /app/models/waste_efficientnet_v2_s.pt
     volumes:
       - ./ml-worker/models:/app/models:ro
     ports:
