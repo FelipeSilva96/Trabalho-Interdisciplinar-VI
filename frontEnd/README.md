@@ -1,56 +1,39 @@
-# Welcome to your Expo app 👋
+# Aplicativo Classifica Resíduo
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo do TI6 feito com Expo e React Native. Ele permite tirar uma foto ou escolher uma imagem da galeria e pedir a classificação de um resíduo.
 
-## Get started
+## Como iniciar
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Instale Node.js LTS. Na pasta `frontEnd` execute:
 
 ```bash
-npm run reset-project
+npm ci
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Crie um arquivo `.env` nesta mesma pasta:
 
-### Other setup steps
+```env
+EXPO_PUBLIC_API_URL=http://192.168.1.100:8080
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Substitua o IP pelo endereço IPv4 do computador onde o backend Java está rodando (veja `ipconfig` no Windows ou `hostname -I` no Linux).
 
-## Learn more
+```bash
+npx expo start -c
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Abra o aplicativo usando Expo Go no celular. O celular deve conseguir acessar o computador na rede. O endereço `localhost` não funciona no celular físico, pois aponta para o próprio telefone.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Fluxo de classificação
 
-## Join the community
+1. Tirar uma foto ou escolher da galeria.
+2. Confirmar a imagem.
+3. Enviar ao backend usando HTTP REST.
+4. Receber a categoria e a confiança do classificador.
+5. Exibir a resposta de forma amigável.
 
-Join our community of developers creating universal apps.
+O aplicativo faz a requisição `POST /api/v1/classifications?strategy=distributed&protocol=grpc`. Ele se comunica por REST com Java, que encaminha internamente as imagens para os workers usando gRPC.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Sem o modelo treinado, o servidor pode responder `MODEL_NOT_LOADED`. Nesse caso, a tela informa que a classificação ainda não está disponível, em vez de mostrar um resultado inventado.
+
+Para testar rapidamente se o servidor está acessível pelo celular, abra no navegador dele `http://IP_DO_PC:8080/api/v1/health`.
