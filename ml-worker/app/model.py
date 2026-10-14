@@ -4,12 +4,12 @@ import os
 import torch
 from PIL import Image
 from torchvision import transforms
-from torchvision.models import efficientnet_v2_s, mobilenet_v3_small
+from torchvision.models import efficientnet_v2_s
 
 
 class WasteModel:
     def __init__(self):
-        self.path = Path(os.getenv("MODEL_PATH", "/app/models/waste_mobilenet.pt"))
+        self.path = Path(os.getenv("MODEL_PATH", "/app/models/waste_efficientnet_v2_s.pt"))
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = None
         self.class_names = []
@@ -27,7 +27,7 @@ class WasteModel:
     def _load(self):
         if not self.path.exists():
             return
-        checkpoint = torch.load(self.path, map_location=self.device, weights_only=False)
+        checkpoint = torch.load(self.path, map_location=self.device, weights_only=True)
         self.class_names = checkpoint["class_names"]
         arch = checkpoint.get("architecture", "efficientnet_v2_s")
 
