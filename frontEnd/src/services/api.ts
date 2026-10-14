@@ -1,9 +1,6 @@
-
 import { Platform } from "react-native";
 
-// Escolha o endereço adequado ao ambiente em que o app roda.
-const API_URL = Platform.OS === "android"
-  ? "http://192.168.18.16:8080"
-  : "http://localhost:8080";
+const configured = process.env.EXPO_PUBLIC_API_URL?.trim();
+const fallback = Platform.OS === "android" ? "http://10.0.2.2:8080" : "http://localhost:8080";
 
-export default API_URL;
+export default (configured || fallback).replace(/\/$/, "");
