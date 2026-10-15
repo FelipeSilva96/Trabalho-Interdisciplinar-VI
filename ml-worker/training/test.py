@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.models import EfficientNet_V2_S_Weights, efficientnet_v2_s
 
-# Para medida de tempo
+# Avaliar previsão do modelo e medir tempo
 def evaluate_checkpoint(model, loader, device, class_count):
     matrix = [[0] * class_count for _ in range(class_count)]
     correct = 0
@@ -29,7 +29,8 @@ def evaluate_checkpoint(model, loader, device, class_count):
     return correct / total if total else 0.0, matrix, total, elapsed
 
 
-# Escrever no arquivo .csv a matriz de confusão para visualização
+# Escrever no arquivo .csv a matriz de confusão
+#   Visualização gráfica dos resutaldos em visualizacao.ipnyb
 def write_confusion_matrix(matrix, class_names, output):
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", newline="", encoding="utf-8") as csv_file:
@@ -40,16 +41,22 @@ def write_confusion_matrix(matrix, class_names, output):
 
 
 def main():
-    # python training/test.py --test-data ../dataset/Test_base --checkpoint models/waste_efficientnet_v2_s.pt
+    # python training/test.py --test-data ../dataset/Test_base
     parser = argparse.ArgumentParser()
     parser.add_argument("--test-data", required=True)
     parser.add_argument("--checkpoint", default="models/waste_efficientnet_v2_s.pt")
     parser.add_argument("--checkpoint-results", default="checkpoint_results.csv")
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--no-pretrained", action="store_true")
+    parser.add_argument("--n-workers", type=int, default=2)
+    parser.add_argument("--cuda", default=1)
     args = parser.parse_args()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Definir execução paralela ou não
+    device_type = "cpu"
+    if ( (args.cuda == 1) and (torch.cuda.is_available()) ):
+        device_type = "cuda"
+    device = torch.device(device_type)
 
     checkpoint = torch.load(
         args.checkpoint,
@@ -79,7 +86,7 @@ def main():
         missing = sorted(expected_classes - external_classes)
         unexpected = sorted(external_classes - expected_classes)
         raise ValueError(
-            "Mismatch de nome de classes. "
+            "Mismatch de nome de classes."
             f"Faltando: {missing}; Não previsto: {unexpected}."
         )
 
@@ -96,18 +103,24 @@ def main():
         external_test,
         batch_size=args.batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=args.n_workers,
     )
+
+    if (device_type == "cpu"):
+        print(f"\n\tCPU execution\n")
+    else:
+        print(f"\n\tCUDA execution with {args.n_workers} workers\n")
+
     (external_accuracy, matrix, image_count,
      elapsed_seconds) = evaluate_checkpoint( model, external_loader, device, len(checkpoint_classes))
     results_path = Path(args.checkpoint_results)
     write_confusion_matrix(matrix, checkpoint_classes, results_path)
-    print(f"test_accuracy={external_accuracy:.4f}")
-    print(f"test_images={image_count}")
-    print(f"test_time_seconds={elapsed_seconds:.4f}")
+    print(f"accuracy={external_accuracy:.4f}")
+    print(f"images={image_count}")
+    print(f"time_seconds={elapsed_seconds:.4f}")
     seconds_per_image = elapsed_seconds / image_count
-    print(f"test_seconds_per_image={seconds_per_image:.6f}")
-    print(f"confusion_matrix={results_path}")
+    print(f"seconds_per_image={seconds_per_image:.6f}")
+    print(f"confusion_matrix={results_path}\n")
 
 
 if __name__ == "__main__":
