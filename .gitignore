@@ -14,7 +14,11 @@ ml-worker/models/*.pth
 ml-worker/models/*.onnx
 !ml-worker/models/.gitkeep
 dataset/data/
+dataset/Train_base/
+dataset/Train_base_100/
+dataset/Test_base/
 Base_unica/
+testes/
 
 # IDE / sistema
 .idea/
