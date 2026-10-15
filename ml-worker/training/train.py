@@ -1,22 +1,14 @@
 import argparse
 from pathlib import Path
-import random
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.models import EfficientNet_V2_S_Weights, efficientnet_v2_s
 
-def split_indices(size, seed=42):
-    indices = list(range(size))
-    random.Random(seed).shuffle(indices)
-    train_end = int(size * 0.70)
-    val_end = int(size * 0.85)
-    return indices[:train_end], indices[train_end:val_end], indices[val_end:]
 
-
-def make_datasets(data_dir):
+def make_dataset(data_dir):
     train_transform = transforms.Compose([
         transforms.Resize((384, 384)),
         transforms.RandomHorizontalFlip(),
@@ -25,41 +17,11 @@ def make_datasets(data_dir):
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
-    eval_transform = transforms.Compose([
-        transforms.Resize((384, 384)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-    ])
-
-    base = datasets.ImageFolder(data_dir)
-    train_idx, val_idx, test_idx = split_indices(len(base))
-
-    train_full = datasets.ImageFolder(data_dir, transform=train_transform)
-    eval_full = datasets.ImageFolder(data_dir, transform=eval_transform)
-
-    return (
-        Subset(train_full, train_idx),
-        Subset(eval_full, val_idx),
-        Subset(eval_full, test_idx),
-        base.classes,
-    )
-
-
-def evaluate(model, loader, device):
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.inference_mode():
-        for images, labels in loader:
-            images = images.to(device)
-            labels = labels.to(device)
-            predictions = model(images).argmax(dim=1)
-            correct += (predictions == labels).sum().item()
-            total += labels.size(0)
-    return correct / total if total else 0.0
+    return datasets.ImageFolder(data_dir, transform=train_transform)
 
 
 def main():
+    # python training/train.py --data ../dataset/Train_base --epochs 5
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True)
     parser.add_argument("--epochs", type=int, default=10)
@@ -69,11 +31,14 @@ def main():
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_set, val_set, test_set, class_names = make_datasets(args.data)
-
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=2)
-    test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=2)
+    train_set = make_dataset(args.data)
+    class_names = train_set.classes
+    train_loader = DataLoader(
+        train_set,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=2,
+    )
 
     weights = None if args.no_pretrained else EfficientNet_V2_S_Weights.DEFAULT
     model = efficientnet_v2_s(weights=weights)
@@ -83,12 +48,9 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
     criterion = nn.CrossEntropyLoss()
 
-    best_val = -1.0
-    output = Path(args.output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-
     for epoch in range(1, args.epochs + 1):
         model.train()
+        epoch_loss = 0.0
         for images, labels in train_loader:
             images = images.to(device)
             labels = labels.to(device)
@@ -96,24 +58,18 @@ def main():
             loss = criterion(model(images), labels)
             loss.backward()
             optimizer.step()
+            epoch_loss += loss.item() * labels.size(0)
 
-        val_accuracy = evaluate(model, val_loader, device)
-        print(f"epoch={epoch} val_accuracy={val_accuracy:.4f}")
+        average_loss = epoch_loss / len(train_set)
+        print(f"epoch={epoch} loss={average_loss:.4f}")
 
-        if val_accuracy > best_val:
-            best_val = val_accuracy
-            torch.save({
-                "architecture": "efficientnet_v2_s",
-                "class_names": class_names,
-                "state_dict": model.state_dict(),
-                "val_accuracy": val_accuracy,
-            }, output)
-
-    checkpoint = torch.load(output, map_location=device, weights_only=False)
-    model.load_state_dict(checkpoint["state_dict"])
-    test_accuracy = evaluate(model, test_loader, device)
-    print(f"best_val_accuracy={best_val:.4f}")
-    print(f"test_accuracy={test_accuracy:.4f}")
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({
+        "architecture": "efficientnet_v2_s",
+        "class_names": class_names,
+        "state_dict": model.state_dict(),
+    }, output)
     print(f"model={output}")
 
 
