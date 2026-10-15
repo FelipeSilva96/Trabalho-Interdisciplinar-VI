@@ -50,6 +50,7 @@ def main():
     parser.add_argument("--no-pretrained", action="store_true")
     parser.add_argument("--n-workers", type=int, default=2)
     parser.add_argument("--cuda", default=1)
+    parser.add_argument("--n-executions", type=int, default=1)
     args = parser.parse_args()
 
     # Definir execução paralela ou não
@@ -106,21 +107,33 @@ def main():
         num_workers=args.n_workers,
     )
 
-    if (device_type == "cpu"):
-        print(f"\n\tCPU execution\n")
-    else:
-        print(f"\n\tCUDA execution with {args.n_workers} workers\n")
+    total_time = 0.0
+    for _ in range(args.n_executions):
 
-    (external_accuracy, matrix, image_count,
-     elapsed_seconds) = evaluate_checkpoint( model, external_loader, device, len(checkpoint_classes))
-    results_path = Path(args.checkpoint_results)
-    write_confusion_matrix(matrix, checkpoint_classes, results_path)
-    print(f"accuracy={external_accuracy:.4f}")
-    print(f"images={image_count}")
-    print(f"time_seconds={elapsed_seconds:.4f}")
-    seconds_per_image = elapsed_seconds / image_count
-    print(f"seconds_per_image={seconds_per_image:.6f}")
-    print(f"confusion_matrix={results_path}\n")
+        if (args.n_executions > 1):
+            print("\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+
+        if (device_type == "cpu"):
+            print(f"\n\t\tCPU execution\n")
+        else:
+            print(f"\n\tCUDA execution with {args.n_workers} workers\n")
+
+        (external_accuracy, matrix, image_count,
+        elapsed_seconds) = evaluate_checkpoint( model, external_loader, device, len(checkpoint_classes))
+        results_path = Path(args.checkpoint_results)
+        write_confusion_matrix(matrix, checkpoint_classes, results_path)
+        print(f"accuracy={external_accuracy:.4f}")
+        print(f"images={image_count}")
+        total_time += elapsed_seconds
+        print(f"time_seconds={elapsed_seconds:.4f}")
+        seconds_per_image = elapsed_seconds / image_count
+        print(f"seconds_per_image={seconds_per_image:.6f}")
+        print(f"confusion_matrix={results_path}")
+    if (args.n_executions > 1):
+        print("\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n")
+        average_time = total_time / args.n_executions
+        print(f"\nAverage execution time: {average_time:.4f}\n")
+
 
 
 if __name__ == "__main__":
