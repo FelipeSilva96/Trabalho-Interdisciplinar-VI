@@ -2,6 +2,8 @@ import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { File, Paths } from "expo-file-system";
+import { setSelectedImage } from "../../services/selectedImage";
 
 export default function Inicio() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export default function Inicio() {
         mediaTypes: ["images"],
         quality: 0.85,
         allowsEditing: false,
+        base64: true,
       };
       const result = fromCamera
         ? await ImagePicker.launchCameraAsync(options)
@@ -27,16 +30,42 @@ export default function Inicio() {
 
       if (result.canceled || !result.assets[0]) return;
       const asset = result.assets[0];
+      console.log("[image-picker] selected asset", {
+        scheme: asset.uri.split(":")[0],
+        mimeType: asset.mimeType,
+        width: asset.width,
+        height: asset.height,
+        fileSize: asset.fileSize,
+      });
+      const extension = asset.mimeType === "image/png" ? "png" : "jpg";
+      const sourceFile = new File(asset.uri);
+      const destinationFile = new File(Paths.document, `selected-image-${Date.now()}.${extension}`);
+      await sourceFile.copy(destinationFile);
+      if (!destinationFile.exists) {
+        throw new Error("A imagem selecionada não pôde ser salva no armazenamento do aplicativo.");
+      }
+      if (!asset.base64) {
+        throw new Error("O seletor não retornou os dados necessários para a pré-visualização.");
+      }
+      setSelectedImage({
+        base64: asset.base64,
+        mimeType: asset.mimeType || "image/jpeg",
+      });
+      console.log("[image-picker] persisted asset", {
+        scheme: destinationFile.uri.split(":")[0],
+        size: destinationFile.size,
+      });
 
       router.push({
         pathname: "/separateScreens/imagemSelecionada",
         params: {
-          imageUri: asset.uri,
+          imageUri: destinationFile.uri,
           imageType: asset.mimeType || "image/jpeg",
         },
       });
-    } catch {
-      Alert.alert("Não foi possível abrir a foto", "Tente novamente ou escolha outra imagem.");
+    } catch (error) {
+      console.error("[image-picker] failed to persist selected image", error);
+      Alert.alert("Não foi possível abrir a foto", "A imagem não pôde ser preparada para visualização. Tente novamente.");
     }
   };
 
