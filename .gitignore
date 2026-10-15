@@ -16,7 +16,9 @@ ml-worker/models/*.onnx
 dataset/data/
 dataset/Train_base/
 dataset/Train_base_100/
+dataset/Train_base_620/
 dataset/Test_base/
+dataset/Test_base_155/
 Base_unica/
 testes/
 
