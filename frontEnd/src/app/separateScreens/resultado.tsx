@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { getSelectedImage } from "../../services/selectedImage";
 
 const categories: Record<string, { name: string; color: string; description: string }> = {
   battery: { name: "Bateria", color: "#D77A19", description: "Encaminhe pilhas e baterias a um ponto específico de coleta." },
@@ -12,7 +13,11 @@ const categories: Record<string, { name: string; color: string; description: str
 
 export default function Resultado() {
   const router = useRouter();
-  const { data, imageUri } = useLocalSearchParams<{ data?: string; imageUri?: string }>();
+  const { data } = useLocalSearchParams<{ data?: string }>();
+  const selectedImage = getSelectedImage();
+  const previewUri = selectedImage
+    ? `data:${selectedImage.mimeType};base64,${selectedImage.base64}`
+    : null;
   let prediction: { status?: string; label?: string; confidence?: number | null } | null = null;
   try {
     const parsed = JSON.parse(typeof data === "string" ? data : "{}");
@@ -27,8 +32,8 @@ export default function Resultado() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Resultado da análise</Text>
-      {typeof imageUri === "string"
-        ? <Image source={{ uri: imageUri }} style={styles.image} resizeMode="contain" />
+      {previewUri
+        ? <Image source={{ uri: previewUri }} style={styles.image} resizeMode="contain" />
         : null}
       <View style={styles.card}>
         <Text style={[styles.result, { color: category?.color || "#355C49" }]}>
